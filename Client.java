@@ -18,15 +18,18 @@ public class Client {
 	public static void main(String args[]) {
 		
 		try {
-			
 			MySocket s = new MySocket(InetAddress.getByName(args[0]), Integer.parseInt(args[1]), args[2]);
 			Client c = new Client(args[2], s);
 			s.enviarMissatge(args[2]);
 			c.new WriterThread(c.s).start();
 			c.new ReaderThread(c.s).start();
 			
-		} catch (NumberFormatException | IOException e) {
-			e.printStackTrace();
+		} catch (NumberFormatException | ArrayIndexOutOfBoundsException | IOException e) {
+			if(e.getClass()==ArrayIndexOutOfBoundsException.class) {
+				System.out.println("Arguments insuficients. (java Client <IPAdresss> <port> <nick>)");
+			} else {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -73,6 +76,7 @@ public class Client {
 					repMissatge();
 				} catch (NullPointerException e){
 					interrupt();
+					break;
 				}
 				
 			}

@@ -82,6 +82,7 @@ public class Server {
 						soc.close();
 						System.out.println(this.nick + " ha marxat.");
 						interrupt();
+						break;
 					}
 			}
 		}
