@@ -16,6 +16,7 @@ public class MyServerSocket {
 			MySocket soc = new MySocket(s);
 			return soc;
 		} catch (IOException e) {
+			System.out.println("ERROR"+e);
 			return null;
 		}
 		

@@ -12,26 +12,48 @@ public class MySocket {
 	protected PrintWriter out;
 	protected Socket s;
 	
-	public MySocket(InetAddress host, int port, String nick) throws IOException {
-		this.s = new Socket(host, port);
-		this.nick = nick;
-		this.in = new BufferedReader(new InputStreamReader(this.s.getInputStream()));
-		this.out = new PrintWriter(this.s.getOutputStream());
+	public MySocket(InetAddress host, int port, String nick) {
+		try {
+			this.nick = nick;
+			this.s = new Socket(host, port);
+			this.in = new BufferedReader(new InputStreamReader(this.s.getInputStream()));
+			this.out = new PrintWriter(this.s.getOutputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public MySocket(Socket s) {
 		this.s = s;
+		try {
+			this.in = new BufferedReader(new InputStreamReader(this.s.getInputStream()));
+			this.out = new PrintWriter(this.s.getOutputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public void close() {
+		try {
+			this.s.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void enviarMissatge(String m){
-		out.print(m);
+		out.println(m);
 		out.flush();
 	}
 	
 	public String rebreMissatge() {
 		try {
-			String m = in.readLine();
-			return m;
+				String m = in.readLine();
+				return m;
+			
 		} catch (IOException e) {
 			return "Error";
 		}

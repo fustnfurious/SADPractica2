@@ -14,6 +14,11 @@ public class Missatge {
 		return miss;
 	}
 	
+	public String toString() {
+		String m = "Missatge: "+this.missatge + "\nData: " + this.data + "\nNick: "+this.nick;
+		return m;
+	}
+	
 	public String getMissatge() {
 		return missatge;
 	}

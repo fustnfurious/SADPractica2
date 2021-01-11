@@ -3,6 +3,7 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Client {
 	
@@ -21,15 +22,15 @@ public class Client {
 			MySocket s = new MySocket(InetAddress.getByName(args[0]), Integer.parseInt(args[1]), args[2]);
 			Client c = new Client(args[2], s);
 			s.enviarMissatge(args[2]);
-			c.new WriterThread(c.s).run();
-			c.new ReaderThread(c.s).run();
+			c.new WriterThread(c.s).start();
+			c.new ReaderThread(c.s).start();
 			
 		} catch (NumberFormatException | IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public class WriterThread implements Runnable {
+	public class WriterThread extends Thread {
 		protected MySocket soc;
 		Scanner sca = new Scanner(System.in);
 		
@@ -46,6 +47,7 @@ public class Client {
 			while(true) {
 				String m = sca.nextLine();
 				enviarMissatge(m);
+				//System.out.print("\u001B[1D"); //tirem enrera per printar missatges a sobre de lo escrit //no va??
 			}
 			
 		}
@@ -53,32 +55,46 @@ public class Client {
 	
 	
 	
-	public class ReaderThread implements Runnable {
+	public class ReaderThread extends Thread {
 		protected MySocket soc;
 		protected HashMap<String, Integer> nickColorMap;
 		protected Random rand = new Random();
 		
 		public ReaderThread(MySocket s) {
 			this.soc = s;
+			this.nickColorMap = new HashMap<String, Integer>();
+			
 		}
 		
 		@Override
 		public void run() {
 			while(true) {
-				repMissatge();
+				try {
+					repMissatge();
+				} catch (NullPointerException e){
+					interrupt();
+				}
+				
 			}
 			
 		}
 		
 		public void repMissatge() {
-				String mstr = soc.rebreMissatge();
-				Missatge m = stringToMiss(mstr);
-				String mToPrint = m.getData()+ "    " + "\u001B[" + nickToColor(m.getNick()) + "m" + m.getNick() + "\u001B[0m" + ": "+m.getMissatge();
-				System.out.println(mToPrint);
+				try {
+					String mstr = soc.rebreMissatge();
+					Missatge m = stringToMiss(mstr);
+					String mToPrint = dataStrToHora(m.getData())+ "    " + "\u001B[" + nickToColor(m.getNick()) + "m" + m.getNick() + "\u001B[0m" + ": "+m.getMissatge();
+					System.out.print(mToPrint);
+					System.out.print("\n");
+				} catch (NullPointerException e) {
+					System.out.println("S'ha perdut la connexio.");
+					throw e;
+				}
+				
 		}
 		
 		public Missatge stringToMiss(String str) {
-			String[] parts = str.split("+");
+			String[] parts = str.split("\\+");
 			return new Missatge(parts[0], parts[1], parts[2]);
 		}
 		
@@ -87,10 +103,10 @@ public class Client {
 		}
 		
 		public int nickToColor(String nick) {
-			if(nickColorMap.get(nick) != null) {
+			if(nickColorMap.containsKey(nick)) {
 				return nickColorMap.get(nick);
 			} else {
-				int randColor = rand.nextInt(10);
+				int randColor = ThreadLocalRandom.current().nextInt(31, 36 + 1);
 				nickColorMap.put(nick, randColor);
 				return randColor;
 			}

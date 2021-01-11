@@ -15,13 +15,21 @@ public class Server {
 	
 	public static void main(String[] args) throws NumberFormatException, IOException {
 		Server server = new Server();
-		server.ss = new MyServerSocket(Integer.parseInt(args[0]));
-		MySocket s;
-		while(true) {
-			s = server.ss.accept();
-			String nick = s.rebreMissatge();
-			server.map.put(nick, s);
+		try {
+			server.ss = new MyServerSocket(Integer.parseInt(args[0]));
+			server.new broadcastSenderThread(server.list, server.map).start();
+			MySocket s;
+			while(true) {
+				s = server.ss.accept();
+				String nick = s.rebreMissatge();
+				System.out.println("Connectat: "+nick);
+				server.map.put(nick, s);
+				server.new ClientReaderThread(nick, s, server.list).start();
+			}
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.println("Especifica el port inútil. (java Server <port>)");
 		}
+		
 		
 	}
 	
@@ -35,7 +43,7 @@ public class Server {
 			this.list = list;
 			this.map = map;
 		}
-		
+		@Override
 		public void run() {
 			while(true) {
 				Missatge m = list.getNextToBroad();
@@ -47,8 +55,10 @@ public class Server {
 			for (Map.Entry<String, MySocket> entry : map.entrySet()) {
 				if(entry.getKey()!=nick) {
 					entry.getValue().enviarMissatge(m.missToString());
+					System.out.println("Enviant Broadcast: "+m.missToString());
 				}
 			}
+			map.get(nick).enviarMissatge((new Missatge(m.getMissatge(), "Tu", m.getData())).missToString());
 		}
 	}
 	
@@ -65,14 +75,19 @@ public class Server {
 		
 		public void run() {
 			while(true) {
-				rebreMissatge();
+				String s = rebreMissatge();
+				if(s!=null) {
+					list.add(new Missatge(s, this.nick, (new Date()).toString()));
+					} else {
+						soc.close();
+						System.out.println(this.nick + " ha marxat.");
+						interrupt();
+					}
 			}
 		}
 		
-		public void rebreMissatge() {
-			String s = soc.rebreMissatge();
-			list.add(new Missatge(s, this.nick, (new Date()).toString()));
-			
+		public String rebreMissatge() {
+			return soc.rebreMissatge();
 		}
 		
 	}
