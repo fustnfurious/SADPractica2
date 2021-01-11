@@ -52,10 +52,10 @@ public class Server {
 		}
 		
 		public void broadcastMissatge(Missatge m, String nick) {
+			System.out.println("Enviant Broadcast: "+m.missToString());
 			for (Map.Entry<String, MySocket> entry : map.entrySet()) {
 				if(entry.getKey()!=nick) {
 					entry.getValue().enviarMissatge(m.missToString());
-					System.out.println("Enviant Broadcast: "+m.missToString());
 				}
 			}
 			map.get(nick).enviarMissatge((new Missatge(m.getMissatge(), "Tu", m.getData())).missToString());
@@ -74,20 +74,16 @@ public class Server {
 		}
 		
 		public void run() {
-			while(true) {
-				String s = rebreMissatge();
-				if(s!=null) {
+			String s;
+			while((s = rebreMissatges()) != null) {
 					list.add(new Missatge(s, this.nick, (new Date()).toString()));
-					} else {
-						soc.close();
-						System.out.println(this.nick + " ha marxat.");
-						interrupt();
-						break;
-					}
 			}
+			soc.close();
+			System.out.println(this.nick + " ha marxat.");
+			interrupt();
 		}
 		
-		public String rebreMissatge() {
+		public String rebreMissatges() {
 			return soc.rebreMissatge();
 		}
 		

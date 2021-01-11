@@ -71,29 +71,20 @@ public class Client {
 		
 		@Override
 		public void run() {
-			while(true) {
-				try {
-					repMissatge();
-				} catch (NullPointerException e){
-					interrupt();
-					break;
-				}
-				
-			}
+			repMissatges();
+			soc.close();
+			interrupt();
 			
 		}
 		
-		public void repMissatge() {
-				try {
-					String mstr = soc.rebreMissatge();
-					Missatge m = stringToMiss(mstr);
-					String mToPrint = dataStrToHora(m.getData())+ "    " + "\u001B[" + nickToColor(m.getNick()) + "m" + m.getNick() + "\u001B[0m" + ": "+m.getMissatge();
-					System.out.print(mToPrint);
-					System.out.print("\n");
-				} catch (NullPointerException e) {
-					System.out.println("S'ha perdut la connexio.");
-					throw e;
-				}
+		public void repMissatges() {
+			String mstr;
+			while ((mstr = soc.rebreMissatge()) != null) {
+				Missatge m = stringToMiss(mstr);
+				String mToPrint = dataStrToHora(m.getData())+ "    " + "\u001B[" + nickToColor(m.getNick()) + "m" + m.getNick() + "\u001B[0m" + ": "+m.getMissatge();
+				System.out.println(mToPrint);
+			}
+			System.out.println("S'ha perdut la connexio.");
 				
 		}
 		
